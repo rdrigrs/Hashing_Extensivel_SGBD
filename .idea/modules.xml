@@ -3,6 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/Hashing_Extensivel_SGBD.iml" filepath="$PROJECT_DIR$/.idea/Hashing_Extensivel_SGBD.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Hashing_Extensivel_SGBD.main.iml" filepath="$PROJECT_DIR$/.idea/modules/Hashing_Extensivel_SGBD.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Hashing_Extensivel_SGBD.test.iml" filepath="$PROJECT_DIR$/.idea/modules/Hashing_Extensivel_SGBD.test.iml" />
     </modules>
   </component>
 </project>
