@@ -1,0 +1,25 @@
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.apache.commons:commons-csv:1.8'
+}
+
+task writeCsv {
+    doLast {
+        def output = new File("output.csv")
+        def writer = new FileWriter(output)
+        def csvFormat = CSVFormat.TDF.withHeader("Column1", "Column2", "Column3")
+        def records = [
+                ["Value1", "Value2", "Value3"],
+                ["Value4", "Value5", "Value6"]
+        ]
+        csvFormat.printRecords(writer, records)
+        writer.close()
+    }
+}
