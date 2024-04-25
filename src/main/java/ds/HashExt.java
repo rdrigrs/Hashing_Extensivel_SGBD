@@ -114,7 +114,7 @@ public class HashExt {
         return ("REM:" + year + "/" + numberOfDeletedRegistries + "," + globalDepth + "," + localDepth);
     }
 
-    public void findRegistry(int year){
+    public String findRegistry(int year){
         String indexNumber = selectedIndexNumbers(year);
 
         // Achar a linha do diretório que contém o index desejado
@@ -128,7 +128,7 @@ public class HashExt {
 
         if (directoryLine == null) {
             System.out.println("Registro não encontrado.");
-            return;
+            return null;
         }
 
         // Encontre o bucket correspondente
@@ -172,6 +172,10 @@ public class HashExt {
         } else {
             System.out.println("Registro encontrado: " + registrys);
         }
+
+        int numberOfSearchedRegistries = registrys.size();
+
+        return ("BUS:" + year + "/" + numberOfSearchedRegistries);
     }
 
     public String selectedIndexNumbers(int year) {

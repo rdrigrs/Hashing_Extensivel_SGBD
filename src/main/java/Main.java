@@ -1,5 +1,3 @@
-import ds.Directory;
-
 import ds.HashExt;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -7,48 +5,57 @@ import org.apache.commons.csv.CSVRecord;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Main {
-    // Aqui eu tô testando a leitura do arquivo CSV
     public static void main(String[] args) {
-        HashExt hashExt = new HashExt();
-
-        String inputFile = "in.txt";
-        String outputFile = "out.txt;";
+        System.out.println("okaqui");
+        HashExt hashExt;
 
 
         try {
             FileWriter writer = new FileWriter(outputFile);
             ArrayList<String> Lines = readInTXT(inputFile);
 
-            int globalDepth = Integer.parseInt(Lines.remove(0).split("/")[1]);
+        int globalDepth = Integer.parseInt(Lines.remove(0).split("/")[1]);
+        hashExt = new HashExt(globalDepth);
 
-            for (String line : Lines) {
-                String[] data = line.split(":");
-                int year = Integer.parseInt(data[1]);
-                if (data[0].equals("INC")) {
-                    ArrayList<String> dataCompras = readCompras();
-                    String correctData = null;
+        ArrayList<String> outLines = null;
 
-                    for (String compra : dataCompras) {
-                        String[] compraData = compra.split(",");
-                        if (compraData[2].equals(data[1])) {
-                            correctData = compra;
-                            break;
-                        }
+        for (String line : Lines) {
+
+            String[] data = line.split(":");
+            int year = Integer.parseInt(data[1]);
+
+            if (data[0].equals("INC")) {
+                ArrayList<String> dataCompras = readCompras();
+                String correctData = null;
+
+                for (String compra : dataCompras) {
+                    String[] compraData = compra.split(",");
+                    if (compraData[2].equals(data[1])) {
+                        correctData = compra;
+                        break;
                     }
-
-                    writer.write(hashExt.insertRegistry(Integer.parseInt(data[1]), Integer.parseInt(correctData.split(",")[0])));
-                } else if (data[0].equals("REM")) {
-                    writer.write(hashExt.deleteRegistry(year));
-                } else if (data[0].equals("BUS")) {
-
                 }
+
+                if (correctData != null) {
+                    outLines.add(hashExt.insertRegistry(year, Integer.parseInt(correctData.split(",")[0])));
+                } else {
+                    System.out.println("Não foi possível encontrar dados de compra correspondentes para o ano: " + year);
+                }
+            } else if (data[0].equals("REM")) {
+                outLines.add(hashExt.deleteRegistry(year));
+            } else if (data[0].equals("BUS")) {
+                outLines.add(hashExt.findRegistry(year));
+
             }
-        } catch (IOException e){
-            e.printStackTrace();
         }
+
+        writeOutTXT(outLines);
+
     }
+
 
     public static ArrayList<String> readCompras() {
         String csvFile = "src\\res\\bd\\compras.csv";
@@ -72,10 +79,10 @@ public class Main {
         }
     }
 
-    public static ArrayList<String> readInTXT(String name) {
+    public static ArrayList<String> readInTXT() {
         // Leitura do arquivo in.txt
         try {
-            BufferedReader reader = new BufferedReader(new FileReader("src\\res\\bd\\inout\\" + name));
+            BufferedReader reader = new BufferedReader(new FileReader("src\\res\\bd\\inout\\in.txt"));
 
             ArrayList<String> Lines = new ArrayList<>();
             String line;
@@ -90,14 +97,14 @@ public class Main {
         }
     }
 
-    public void writeTXT(String name) {
+    public static void writeOutTXT(ArrayList<String> Lines) {
         // Escrita do arquivo .txt
         try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter("src\\res\\bd\\" + name));
+            BufferedWriter writer = new BufferedWriter(new FileWriter("src\\res\\bd\\inout\\out.txt"));
 
-            writer.write("Testando essa linha aqui");
-            writer.newLine();
-            writer.write("Linha 2");
+            for (String line : Lines) {
+                writer.write(line + "\n");
+            }
 
             writer.close();
         } catch (IOException e) {
