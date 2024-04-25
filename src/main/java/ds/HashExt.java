@@ -25,9 +25,7 @@ public class HashExt {
         String binaryYear = hashFunction(year);
         String key = binaryYear.substring(binaryYear.length()-1);
 
-        if (directory.isEmpty()) {
-
-        }
+        //if (directory.isEmpty())
     }
 
     public void deleteRegistry(){

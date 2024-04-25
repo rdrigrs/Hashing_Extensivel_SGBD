@@ -1,14 +1,41 @@
 package ds;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
+
+import java.io.IOException;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Directory {
     private int globalDepth;
-    private List<DirectoryLine> directoryLines;
+    private List<DirectoryLine> directoryLines = new ArrayList<>();
 
     public Directory(){
-        setDirectoryLines(new ArrayList<>());
-        setGlobalDepth(0);
+        globalDepth = 0;
+    }
+    public Directory(String key, int year, int pKey){
+        directoryLines.add(new DirectoryLine("0", 1, key));
+        directoryLines.add(new DirectoryLine("1", 1, key));
+        globalDepth = 1;
+
+        String folder = "../../../res/buckets/";
+        String line = pKey + "," + year;
+        try (CSVPrinter writer = new CSVPrinter(new FileWriter(folder + key), CSVFormat.DEFAULT.withHeader("Year", "PK"))) {
+            System.out.println("okaqui");
+
+            writer.printRecord("Year", "PK"); // header
+            writer.println(); // newline
+
+            writer.printRecord(line); // write the line
+            writer.println(); // newline
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("errror");
+        }
     }
 
     public int getGlobalDepth() {
