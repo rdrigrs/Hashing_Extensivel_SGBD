@@ -12,10 +12,7 @@ public class Main {
         System.out.println("okaqui");
         HashExt hashExt;
 
-
-        try {
-            FileWriter writer = new FileWriter(outputFile);
-            ArrayList<String> Lines = readInTXT(inputFile);
+        ArrayList<String> Lines = readInTXT();
 
         int globalDepth = Integer.parseInt(Lines.remove(0).split("/")[1]);
         hashExt = new HashExt(globalDepth);

@@ -11,13 +11,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HashExt {
-    private Directory directory = new Directory();
-
-    // Para pegar o globalDepth
-    int globalDepth = directory.getGlobalDepth();
+    private Directory directory;
+    private int globalDepth;
 
     // Para pegar a directoryLines
     List<DirectoryLine> directoryLines = directory.getDirectoryLines();
+
+    public HashExt(int globalDepth){
+        this.globalDepth = globalDepth;
+        directory = new Directory(globalDepth);
+    }
 
     public String hashFunction(int year) {
         return Integer.toBinaryString(year);
@@ -25,9 +28,28 @@ public class HashExt {
 
     public String insertRegistry(int year, int pKey){
         String binaryYear = hashFunction(year);
-        String key = binaryYear.substring(binaryYear.length()-1);
+        String key, index;
+        index = binaryYear.substring(binaryYear.length() - globalDepth);
+        int localDepth = directory.findLocalDepth(index);
 
-        //if (directory.isEmpty())
+
+        if (directory.isEmpty()){
+            key = binaryYear.substring(binaryYear.length()-1);
+            directory = new Directory(key, pKey, year);
+            globalDepth = directory.getGlobalDepth();
+        } else {
+            key = binaryYear.substring(binaryYear.length()-localDepth);
+            if (!directory.isBucketFull(key)){
+                directory.writeOnBucket(key, pKey, year);
+            } else {
+                localDepth++;
+                directory.duplicateDirectory();
+                directory.relocateRegistries(key, localDepth);
+            }
+
+        }
+
+        return ("INC:" + year + "/" + globalDepth + "," + localDepth);
     }
 
     public String deleteRegistry(int year){
