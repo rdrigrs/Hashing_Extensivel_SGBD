@@ -1,4 +1,4 @@
-package res.ds;
+package ds;
 
 public class Bucket {
 }

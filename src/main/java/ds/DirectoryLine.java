@@ -1,11 +1,11 @@
-package res.ds;
+package ds;
 
 public class DirectoryLine {
     private String index;
     private int localDepth;
-    private Bucket pointer;
+    private String pointer;
 
-    public DirectoryLine(String index, int localDepth, Bucket pointer) {
+    public DirectoryLine(String index, int localDepth, String pointer) {
         this.index = index;
         this.localDepth = localDepth;
         this.pointer = pointer;
@@ -25,10 +25,10 @@ public class DirectoryLine {
         this.localDepth = localDepth;
     }
 
-    public Bucket getPointer() {
+    public String getPointer() {
         return pointer;
     }
-    public void Bucket(Bucket pointer) {
+    public void setPointer(String pointer) {
         this.pointer = pointer;
     }
 }
