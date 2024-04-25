@@ -2,8 +2,10 @@ package ds;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,15 +23,95 @@ public class HashExt {
         return Integer.toBinaryString(year);
     }
 
-    public void insertRegistry(int year){
+    public String insertRegistry(int year, int pKey){
         String binaryYear = hashFunction(year);
         String key = binaryYear.substring(binaryYear.length()-1);
 
         //if (directory.isEmpty())
     }
 
-    public void deleteRegistry(){
+    public String deleteRegistry(int year){
+        String indexNumber = selectedIndexNumbers(year);
 
+        // Achar a linha do diretório que contém o index desejado
+        DirectoryLine directoryLine = null;
+        for (DirectoryLine line : directoryLines) {
+            if (line.getIndex().equals(indexNumber)) {
+                directoryLine = line;
+                break;
+            }
+        }
+
+        if (directoryLine == null) {
+            System.out.println("Registro não encontrado.");
+            return null;
+        }
+
+        // Encontrar o bucket correspondente
+        String bucket = directoryLine.getPointer();
+
+        // abrir o arquivo .csv do bucket e buscar todos os registros que satisfazem o ano
+        String csvFile = "src\\res\\bd\\buckets\\" + bucket + ".csv";
+
+        List<String[]> csvBody = new ArrayList<>();
+        try {
+            CSVParser csvParser = new CSVParser(new FileReader(csvFile), CSVFormat.DEFAULT);
+            for (CSVRecord csvRecord : csvParser) {
+                String[] rowData = new String[csvRecord.size()];
+
+                for (int i = 0; i < csvRecord.size(); i++) {
+                    rowData[i] = csvRecord.get(i);
+                }
+
+                csvBody.add(rowData);
+            }
+
+            csvParser.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        List<String[]> registriesToDelete = new ArrayList<>();
+        for (String[] registry : csvBody) {
+            if (Integer.parseInt(registry[1]) == year) {
+                registriesToDelete.add(registry);
+            }
+        }
+
+        if (registriesToDelete.isEmpty()) {
+            System.out.println("Registro não encontrado.");
+            return null;
+        }
+
+        // Salvando o número de registros deletados
+        int numberOfDeletedRegistries = registriesToDelete.size();
+
+        // Delete o registro do csvBody
+        csvBody.removeAll(registriesToDelete);
+
+        // Reescreva o arquivo .csv sem o registro deletado
+        try (CSVPrinter writer = new CSVPrinter(new FileWriter(csvFile), CSVFormat.DEFAULT)) {
+            for (String[] registry : csvBody) {
+                writer.printRecord((Object[]) registry);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // Se o bucket estiver vazio, delete a referência para ele no diretório
+        if (csvBody.isEmpty()) {
+            directoryLines.remove(directoryLine);
+            String bucketPointer = directoryLine.getPointer();
+            for (DirectoryLine line : directoryLines) {
+                if (line.getPointer().equals(bucketPointer)) {
+                    line.setLocalDepth(line.getLocalDepth() - 1);
+                }
+            }
+        }
+
+        int localDepth = directoryLine.getLocalDepth();
+
+        return ("REM:" + year + "/" + numberOfDeletedRegistries + "," + globalDepth + "," + localDepth);
     }
 
     public void findRegistry(int year){
