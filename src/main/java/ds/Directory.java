@@ -98,7 +98,8 @@ public class Directory {
         int numLines = 0;
 
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-            while (br.readLine() != null) {
+            String line;
+            while ((line = br.readLine()) != null) {
                 numLines++;
             }
         } catch (IOException e) {

@@ -20,18 +20,18 @@ public class HashExt {
     public HashExt(int globalDepth){
         this.globalDepth = globalDepth;
         directory = new Directory(globalDepth);
+        directoryLines = directory.getDirectoryLines();
     }
 
     public String hashFunction(int year) {
         return Integer.toBinaryString(year);
     }
 
-    public String insertRegistry(int year, int pKey){
+    public String insertRegistry(int pKey, int year){
         String binaryYear = hashFunction(year);
         String key, index;
         index = binaryYear.substring(binaryYear.length() - globalDepth);
         int localDepth = directory.findLocalDepth(index);
-
 
         if (directory.isEmpty()){
             key = binaryYear.substring(binaryYear.length()-1);
@@ -46,9 +46,7 @@ public class HashExt {
                 directory.duplicateDirectory();
                 directory.relocateRegistries(key, localDepth);
             }
-
         }
-
         return ("INC:" + year + "/" + globalDepth + "," + localDepth);
     }
 
@@ -94,7 +92,7 @@ public class HashExt {
         }
 
         List<String[]> registriesToDelete = new ArrayList<>();
-        for (String[] registry : csvBody) {
+        for (String[] registry : txtBody) {
             if (Integer.parseInt(registry[1]) == year) {
                 registriesToDelete.add(registry);
             }
@@ -109,19 +107,20 @@ public class HashExt {
         int numberOfDeletedRegistries = registriesToDelete.size();
 
         // Delete o registro do csvBody
-        csvBody.removeAll(registriesToDelete);
+        txtBody.removeAll(registriesToDelete);
 
-        // Reescreva o arquivo .csv sem o registro deletado
-        try (CSVPrinter writer = new CSVPrinter(new FileWriter(csvFile), CSVFormat.DEFAULT)) {
-            for (String[] registry : csvBody) {
-                writer.printRecord((Object[]) registry);
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(txtFile))) {
+            for (String[] registry : txtBody) {
+                System.out.println(registry);
+                writer.write(String.join(",", registry) + "\n");
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
 
         // Se o bucket estiver vazio, delete a referência para ele no diretório
-        if (csvBody.isEmpty()) {
+        if (txtBody.isEmpty()) {
             directoryLines.remove(directoryLine);
             String bucketPointer = directoryLine.getPointer();
             for (DirectoryLine line : directoryLines) {
@@ -136,7 +135,7 @@ public class HashExt {
         return ("REM:" + year + "/" + numberOfDeletedRegistries + "," + globalDepth + "," + localDepth);
     }
 
-    public String findRegistry(int year){
+    public String findRegistry(int year) {
         String indexNumber = selectedIndexNumbers(year);
 
         // Achar a linha do diretório que contém o index desejado
@@ -157,35 +156,29 @@ public class HashExt {
         String bucket = directoryLine.getPointer();
 
         // abrir o arquivo .csv do bucket e buscar todos os registros que satisfazem o ano
-        String csvFile = """
-        ../bd/buckets/%s.csv""".formatted(bucket);
+        String txtFile = """
+        %s.txt""".formatted(bucket);
 
-        List<String[]> csvBody = new ArrayList<>();
+        List<String[]> bucketContent = new ArrayList<>();
         try {
-            // Ler o arquivo CSV
-            CSVParser csvParser = new CSVParser(new FileReader(csvFile), CSVFormat.DEFAULT);
-            for (CSVRecord csvRecord : csvParser) {
-                // Crie um array de strings para armazenar os valores desta linha
-                String[] rowData = new String[csvRecord.size()];
-
-                // Preencha o array com os valores desta linha
-                for (int i = 0; i < csvRecord.size(); i++) {
-                    rowData[i] = csvRecord.get(i);
-                }
-                // Adicione o array à lista de dados do CSV
-                csvBody.add(rowData);
+            // Ler o arquivo TXT
+            BufferedReader reader = new BufferedReader(new FileReader(txtFile));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] rowData = line.split(",");
+                bucketContent.add(rowData);
             }
 
-            csvParser.close();
+            reader.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
 
         List<String[]> registrys = new ArrayList<>();
 
-        for (int i = 0; i < csvBody.size() ; i++) {
-            if (csvBody.get(i)[2].equals(String.valueOf(year))) {
-                registrys.add(csvBody.get(i));
+        for (int i = 0; i < bucketContent.size() ; i++) {
+            if (bucketContent.get(i)[1].equals(String.valueOf(year))) {
+                registrys.add(bucketContent.get(i));
             }
         }
 

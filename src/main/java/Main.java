@@ -1,15 +1,10 @@
 import ds.HashExt;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class Main {
     public static void main(String[] args) {
-        System.out.println("okaqui");
         HashExt hashExt;
 
         ArrayList<String> Lines = readInTXT();
@@ -17,7 +12,9 @@ public class Main {
         int globalDepth = Integer.parseInt(Lines.remove(0).split("/")[1]);
         hashExt = new HashExt(globalDepth);
 
-        ArrayList<String> outLines = null;
+        ArrayList<String> outLines = new ArrayList<>();
+
+        outLines.add("PG/" + globalDepth);
 
         for (String line : Lines) {
 
@@ -37,10 +34,8 @@ public class Main {
                 }
 
                 if (correctData != null) {
-                    outLines.add(hashExt.insertRegistry(year, Integer.parseInt(correctData.split(",")[0])));
-                } else {
-                    System.out.println("Não foi possível encontrar dados de compra correspondentes para o ano: " + year);
-                }
+                    outLines.add(hashExt.insertRegistry(Integer.parseInt(correctData.split(",")[0]), year));
+                }else {}
             } else if (data[0].equals("REM")) {
                 outLines.add(hashExt.deleteRegistry(year));
             } else if (data[0].equals("BUS")) {
@@ -49,27 +44,26 @@ public class Main {
             }
         }
 
+        outLines.add("P/" + globalDepth);
+
         writeOutTXT(outLines);
 
     }
 
-
     public static ArrayList<String> readCompras() {
-        String csvFile = "src\\res\\bd\\compras.csv";
+        String csvFile = "../java/bd/compras.csv";
 
         try {
-            CSVParser csvParser = new CSVParser(new FileReader(csvFile), CSVFormat.DEFAULT);
-
-            ArrayList<String> Lines = new ArrayList<>();
+            BufferedReader reader = new BufferedReader(new FileReader(csvFile));
+            ArrayList<String> lines = new ArrayList<>();
             String line;
 
-            for (CSVRecord csvRecord : csvParser) {
-                line = csvRecord.get(0) + ";" + csvRecord.get(1) + ";" + csvRecord.get(2);
-                Lines.add(line);
+            while ((line = reader.readLine()) != null) {
+                lines.add(line);
             }
-            csvParser.close();
+            reader.close();
 
-            return Lines;
+            return lines;
         } catch (IOException e) {
             e.printStackTrace();
             return null;
@@ -79,7 +73,7 @@ public class Main {
     public static ArrayList<String> readInTXT() {
         // Leitura do arquivo in.txt
         try {
-            BufferedReader reader = new BufferedReader(new FileReader("src\\res\\bd\\inout\\in.txt"));
+            BufferedReader reader = new BufferedReader(new FileReader("../java/bd/inout/in.txt"));
 
             ArrayList<String> Lines = new ArrayList<>();
             String line;
@@ -97,7 +91,7 @@ public class Main {
     public static void writeOutTXT(ArrayList<String> Lines) {
         // Escrita do arquivo .txt
         try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter("src\\res\\bd\\inout\\out.txt"));
+            BufferedWriter writer = new BufferedWriter(new FileWriter("../java/bd/inout/out.txt"));
 
             for (String line : Lines) {
                 writer.write(line + "\n");
