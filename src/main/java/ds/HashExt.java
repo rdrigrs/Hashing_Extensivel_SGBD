@@ -1,12 +1,6 @@
 package ds;
 
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVPrinter;
-import org.apache.commons.csv.CSVRecord;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,7 +9,7 @@ public class HashExt {
     private int globalDepth;
 
     // Para pegar a directoryLines
-    List<DirectoryLine> directoryLines = directory.getDirectoryLines();
+    List<DirectoryLine> directoryLines;
 
     public HashExt(int globalDepth){
         this.globalDepth = globalDepth;
@@ -35,7 +29,6 @@ public class HashExt {
 
         if (directory.isEmpty()){
             key = binaryYear.substring(binaryYear.length()-1);
-            directory = new Directory(key, pKey, year);
             globalDepth = directory.getGlobalDepth();
         } else {
             key = binaryYear.substring(binaryYear.length()-localDepth);
@@ -70,23 +63,17 @@ public class HashExt {
         // Encontrar o bucket correspondente
         String bucket = directoryLine.getPointer();
 
-        // abrir o arquivo .csv do bucket e buscar todos os registros que satisfazem o ano
-        String csvFile = "src\\res\\bd\\buckets\\" + bucket + ".csv";
+        String txtFile = bucket + ".txt";
 
-        List<String[]> csvBody = new ArrayList<>();
+        List<String[]> txtBody = new ArrayList<>();
         try {
-            CSVParser csvParser = new CSVParser(new FileReader(csvFile), CSVFormat.DEFAULT);
-            for (CSVRecord csvRecord : csvParser) {
-                String[] rowData = new String[csvRecord.size()];
-
-                for (int i = 0; i < csvRecord.size(); i++) {
-                    rowData[i] = csvRecord.get(i);
-                }
-
-                csvBody.add(rowData);
+            BufferedReader reader = new BufferedReader(new FileReader(txtFile));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] rowData = line.split(",");
+                txtBody.add(rowData);
             }
-
-            csvParser.close();
+            reader.close();
         } catch (IOException e) {
             e.printStackTrace();
         }

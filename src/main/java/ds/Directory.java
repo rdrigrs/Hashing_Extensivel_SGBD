@@ -1,11 +1,13 @@
 package ds;
 
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVPrinter;
-import org.apache.commons.csv.CSVRecord;
+//import org.apache.commons.csv.CSVFormat;
+//import org.apache.commons.csv.CSVParser;
+//import org.apache.commons.csv.CSVPrinter;
+//import org.apache.commons.csv.CSVRecord;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,7 +17,7 @@ public class Directory {
 
     public Directory(int globalDepth) {
         this.globalDepth = globalDepth;
-        String folder = "src\\res\\bd\\buckets\\";
+        String folder = "";
 
         int numFiles = (int) Math.pow(2, globalDepth);
 
@@ -24,7 +26,8 @@ public class Directory {
             if (binaryName.length() < globalDepth) {
                 binaryName = String.format("%0" + globalDepth + "d", Integer.parseInt(binaryName, 2));
             }
-            File file = new File(folder + binaryName + ".csv");
+            directoryLines.add(new DirectoryLine(binaryName, globalDepth, binaryName));
+            File file = new File(folder + binaryName + ".txt");
             try {
                 file.createNewFile();
             } catch (IOException e) {
@@ -33,20 +36,22 @@ public class Directory {
         }
     }
 
-    public Directory(String key, int pKey, int year) {
-        directoryLines.add(new DirectoryLine("0", 1, key));
-        directoryLines.add(new DirectoryLine("1", 1, key));
 
-        String folder = "src\\res\\bd\\buckets\\";
+//    public Directory(String key, int pKey, int year) {
+//        directoryLines.add(new DirectoryLine("0", 1, key));
+//        directoryLines.add(new DirectoryLine("1", 1, key));
+//
+//        String folder = "src\\res\\bd\\buckets\\";
+//
+//        try (PrintWriter writer = new PrintWriter(new FileWriter(folder + key + ".txt"))) {
+//            writer.println(pKey + "," + year);
+//
+//            globalDepth = 1;
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
 
-        try (CSVPrinter writer = new CSVPrinter(new FileWriter(folder + key + ".csv"), CSVFormat.DEFAULT)) {
-            writer.printRecord(pKey, year);
-
-            globalDepth = 1;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
     public int getGlobalDepth() {
         return globalDepth;
@@ -66,7 +71,8 @@ public class Directory {
 
     public int findLocalDepth(String index) {
         for (DirectoryLine dl : directoryLines) {
-            if (dl.getIndex() == index) {
+//            System.out.print(dl.getIndex() + " ");
+            if (dl.getIndex().equals(index)) {
                 return dl.getLocalDepth();
             }
         }
@@ -94,7 +100,7 @@ public class Directory {
     }
 
     public boolean isBucketFull(String key) {
-        String filePath = "src\\res\\bd\\buckets\\" + key + ".csv";
+        String filePath = key + ".txt";
         int numLines = 0;
 
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
@@ -109,11 +115,10 @@ public class Directory {
     }
 
     public void writeOnBucket(String key, int pKey, int year) {
-        String filePath = "src\\res\\bd\\buckets\\" + key + ".csv";
-        ;
+        String filePath = key + ".txt";
 
-        try (CSVPrinter writer = new CSVPrinter(new FileWriter(filePath, true), CSVFormat.DEFAULT)) {
-            writer.printRecord(pKey, year);
+        try (PrintWriter writer = new PrintWriter(new FileWriter(filePath, true))) {
+            writer.println(pKey + "," + year);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -123,36 +128,33 @@ public class Directory {
         String newKey0 = "0" + key;
         String newKey1 = "1" + key;
         String binaryYear, tempKey;
-        String inputFilePath = "src\\res\\bd\\buckets\\" + key + ".csv";
-        String outputFilePath1 = "src\\res\\bd\\buckets\\" + newKey0 + ".csv";
-        String outputFilePath2 = "src\\res\\bd\\buckets\\" + newKey1 + ".csv";
-        List<List<String>> dataList = new ArrayList<>();
+        String inputFilePath = key + ".txt";
+        String outputFilePath1 = newKey0 + ".txt";
+        String outputFilePath2 = newKey1 + ".txt";
+        List<String> dataList = new ArrayList<>();
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(inputFilePath));
-             CSVParser parser = new CSVParser(reader, CSVFormat.DEFAULT);) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(inputFilePath));) {
 
-            for (CSVRecord record : parser) {
-                List<String> recordList = new ArrayList<>();
-                for (String value : record) {
-                    recordList.add(value);
-                }
-                dataList.add(recordList);
+            String line;
+            while ((line = reader.readLine()) != null) {
+                dataList.add(line);
             }
 
             boolean deleted = new File(inputFilePath).delete();
             System.out.println("Input file deleted: " + deleted);
 
-            try (CSVPrinter printer0 = new CSVPrinter(new FileWriter(outputFilePath1), CSVFormat.DEFAULT);
-                 CSVPrinter printer1 = new CSVPrinter(new FileWriter(outputFilePath2), CSVFormat.DEFAULT);) {
+            try (PrintWriter printer0 = new PrintWriter(new FileWriter(outputFilePath1));
+                 PrintWriter printer1 = new PrintWriter(new FileWriter(outputFilePath2));) {
 
-                for (List<String> record : dataList) {
-                    binaryYear = Integer.toBinaryString(Integer.parseInt(record.get(1)));
-                    tempKey = binaryYear.substring(binaryYear.length()-newLocalDepth);
+                for (String record : dataList) {
+                    String[] fields = record.split(","); // assume spaces as separators
+                    binaryYear = Integer.toBinaryString(Integer.parseInt(fields[1]));
+                    tempKey = binaryYear.substring(binaryYear.length() - newLocalDepth);
 
-                    if (tempKey.equals("0" + key)){
-                        printer0.printRecord(record);
+                    if (tempKey.equals("0" + key)) {
+                        printer0.println(record);
                     } else {
-                        printer1.printRecord(record);
+                        printer1.println(record);
                     }
                 }
 
@@ -164,10 +166,10 @@ public class Directory {
             e.printStackTrace();
         }
 
-        for (DirectoryLine dl : directoryLines){
+        for (DirectoryLine dl : directoryLines) {
             if (dl.getPointer().equals(key)) {
                 dl.setLocalDepth(newLocalDepth);
-                if (dl.getIndex().equals("0"+ key)){
+                if (dl.getIndex().equals("0" + key)) {
                     dl.setPointer(newKey0);
                 } else {
                     dl.setPointer(newKey1);
@@ -175,7 +177,7 @@ public class Directory {
             }
         }
 
-        if (globalDepth < newLocalDepth){
+        if (globalDepth < newLocalDepth) {
             globalDepth = newLocalDepth;
         }
     }
